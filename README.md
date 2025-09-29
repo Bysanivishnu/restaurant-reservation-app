@@ -94,6 +94,119 @@ The color scheme uses Tailwind's amber palette. To change:
 - Replace images with your own (using Pexels URLs or local assets)
 - Modify menu items in `src/components/Menu.tsx`
 
+
+
+
+### React Reservation Form
+
+A simple React form that saves restaurant reservations directly to Google Sheets using Google Apps Script. Includes secure token-based submission, optional email confirmation, and easy deployment.
+
+🚀 Features
+Save form submissions directly to Google Sheets
+Timestamp added automatically
+Simple secret token authentication
+Optional email confirmation to users
+Works with public (anonymous) submissions
+Easy to deploy and test
+
+📁 Getting Started
+
+1️⃣ Create the Google Sheet
+Open Google Drive → New → Google Sheets
+Rename it (e.g., Restaurant Reservations)
+Add headers in row 1:
+Timestamp | Name | Email | Phone | Date | Time | Guests | Message
+(Optional) Freeze the header row: View → Freeze → 1 row
+
+2️⃣ Add Apps Script
+In the sheet, go to Extensions → Apps Script
+Delete any default code and paste this script:
+const SECRET = "replace_this_with_a_random_secret_string";
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents || "{}");
+
+    if (!data.secret || data.secret !== SECRET) {
+      return ContentService.createTextOutput(
+        JSON.stringify({ status: "error", message: "Unauthorized" })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Sheet1") || ss.getActiveSheet();
+
+    sheet.appendRow([
+      new Date(),
+      data.name || "",
+      data.email || "",
+      data.phone || "",
+      data.date || "",
+      data.time || "",
+      data.guests || "",
+      data.message || ""
+    ]);
+
+    return ContentService.createTextOutput(
+      JSON.stringify({ status: "success", message: "Reservation saved" })
+    ).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ status: "error", message: err.message })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+3️⃣ Deploy as Web App
+Click Deploy → New deployment → Web app
+
+Set:
+Execute as: Me
+Who has access: Anyone (or Anyone, even anonymous)
+Deploy and authorize
+Copy the Web App URL (e.g., https://script.google.com/macros/s/XXXX/exec)
+
+🔄 If you update the script, re-deploy and update your URL in React.
+
+4️⃣ React Form Submit Code
+const GOOGLE_WEBAPP_URL = "https://script.google.com/macros/s/XXXX/exec";
+const SECRET = "replace_this_with_a_random_secret_string";
+
+const handleSubmit = async (formData) => {
+  try {
+    const response = await fetch(GOOGLE_WEBAPP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...formData, secret: SECRET })
+    });
+
+    const result = await response.json();
+    if (result.status === "success") alert("Reservation submitted!");
+    else alert("Error: " + result.message);
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to submit reservation.");
+  }
+};
+
+5️⃣ Testing & Troubleshooting
+Verify Web App URL is correct
+Use browser DevTools → Network tab to inspect POST requests
+Check your Google Sheet for appended rows
+Ensure SECRET matches in both Apps Script and React
+
+6️⃣ Security Tips
+Keep SECRET private (use .env.local in React)
+Avoid committing secrets publicly
+For production, restrict access to authorized users
+
+📦 Tech Stack
+React
+Google Sheets / Apps Script
+JavaScript / Fetch API
+
+
 ### Google Sheets Setup
 Replace the placeholder URL in `Contact.tsx` with your Google Apps Script Web App URL.
 
@@ -111,10 +224,6 @@ The site is deployed on Bolt Hosting. To deploy elsewhere:
 3. Commit changes: `git commit -am 'Add feature'`
 4. Push to branch: `git push origin feature-name`
 5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
