@@ -21,6 +21,11 @@ A beautiful, responsive restaurant website built with React, TypeScript, and Tai
 - **Backend**: Google Sheets integration for reservations
 - **Deployment**: Bolt Hosting
 
+🌐 Live Demo
+Experience the live demo here:
+🔗 https://elegant-restaurant-w-iyh8.bolt.host
+
+
 ## Getting Started
 
 ### Prerequisites
